@@ -1,1 +1,1 @@
-console.log("Twitch Pong Extension initialized")
+console.log("Hey prime :D")
