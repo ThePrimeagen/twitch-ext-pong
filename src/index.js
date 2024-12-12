@@ -1,1 +1,1 @@
-console.log("Hey prime :D what's up it's me DerLuukee xD")
+console.log("Hey prime! Hope you're having a great day!")
