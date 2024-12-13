@@ -7,20 +7,22 @@ RUN apk add --no-cache git
 # Set working directory
 WORKDIR /app
 
-# Copy go mod and sum files
-COPY go.mod go.sum ./
+# Copy server files
+COPY server/ ./server/
 
-# Download all dependencies
+# Set up Go workspace and build
+WORKDIR /app/server
 RUN go mod download
+RUN go build -o /app/main .
 
-# Copy the source code
-COPY . .
-
-# Build the application
-RUN go build -o main .
+# Set final working directory for execution
+WORKDIR /app
 
 # Expose port 42069 🦍
 EXPOSE 42069
+
+# MAKE CACHE NICE
+COPY src/ ./src/
 
 # Command to run the executable
 CMD ["./main"]

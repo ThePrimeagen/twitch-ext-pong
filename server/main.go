@@ -104,6 +104,11 @@ func main() {
         "version", "1.0.0",
         "log_level", "debug")
 
+    // Serve static files from /src directory
+    fs := http.FileServer(http.Dir("./src"))
+    http.Handle("/", http.StripPrefix("/", fs))
+
+    // Handle WebSocket connections
     http.HandleFunc("/ws", server.handleWS)
 
     slog.Info("🦍 STRONK SERVER STARTING ON PORT 42069 🦍",
