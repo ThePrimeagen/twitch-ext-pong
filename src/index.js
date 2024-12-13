@@ -12,6 +12,11 @@ const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 100;
 const PADDLE_COLOR = '#fff';
 
+// Constants for paddle movement
+const PADDLE_SPEED = 10;
+const MIN_PADDLE_Y = BORDER_WIDTH;
+let maxPaddleY = canvas.height - BORDER_WIDTH - PADDLE_HEIGHT;
+
 // WebSocket connection
 const ws = new WebSocket('ws://localhost:42069/ws');
 let gameState = {
@@ -92,6 +97,42 @@ function drawGame() {
     drawPaddles();
 }
 
+// Handle paddle movement
+function movePaddle(direction) {
+    const currentY = gameState.leftPaddle;  // All players control left paddle
+    let newY = currentY;
+
+    if (direction === 'up') {
+        newY = Math.max(MIN_PADDLE_Y, currentY - PADDLE_SPEED);
+    } else if (direction === 'down') {
+        newY = Math.min(maxPaddleY, currentY + PADDLE_SPEED);
+    }
+
+    if (newY !== currentY) {
+        // Send paddle position to server
+        const updateMsg = {
+            type: 'paddle_update',
+            payload: {
+                side: 'left',  // All players on left team
+                y: newY
+            }
+        };
+        ws.send(JSON.stringify(updateMsg));
+    }
+}
+
+// Handle keyboard events
+document.addEventListener('keydown', (event) => {
+    switch (event.key) {
+        case 'ArrowUp':
+            movePaddle('up');
+            break;
+        case 'ArrowDown':
+            movePaddle('down');
+            break;
+    }
+});
+
 // Resize canvas to fit window
 function resizeCanvas() {
     const maxWidth = window.innerWidth - MIN_PADDING * 2;
@@ -108,6 +149,9 @@ function resizeCanvas() {
 
     canvas.width = width;
     canvas.height = height;
+
+    // Update max paddle Y position
+    maxPaddleY = canvas.height - BORDER_WIDTH - PADDLE_HEIGHT;
 
     // Draw game elements
     drawGame();

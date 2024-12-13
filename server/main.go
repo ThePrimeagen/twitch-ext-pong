@@ -17,12 +17,18 @@ type MessageType string
 const (
     TypeInitialState MessageType = "initial_state"
     TypePaddleUpdate MessageType = "paddle_update"
+    TypeTeamAssign   MessageType = "team_assign"    // New type for team assignment
 )
 
 // Message structure for WebSocket communication
 type Message struct {
     Type    MessageType  `json:"type"`
     Payload interface{} `json:"payload"`
+}
+
+// TeamAssignment represents team assignment for a player
+type TeamAssignment struct {
+    Team string `json:"team"`  // "left" or "right"
 }
 
 // PaddlePosition represents the position of a paddle
@@ -114,7 +120,7 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
     if err := conn.WriteJSON(initialMsg); err != nil {
         slog.Error("Failed to send initial state",
             "error", err,
-            "addr", conn.RemoteAddr(),
+            "addr", conn.RemoteAddr,
             "timestamp", time.Now().Format(time.RFC3339))
     }
 
@@ -151,13 +157,14 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
                 s.Lock()
                 if side, ok := pos["side"].(string); ok {
                     if y, ok := pos["y"].(float64); ok {
-                        if side == "left" {
-                            s.gameState.LeftPaddle = y
-                        } else {
-                            s.gameState.RightPaddle = y
-                        }
+                        // All players control left paddle
+                        s.gameState.LeftPaddle = y
                         // Broadcast the update to all clients
                         s.broadcast(msg)
+                        slog.Info("🦍 PADDLE MOVED 🦍",
+                            "side", side,
+                            "y", y,
+                            "timestamp", time.Now().Format(time.RFC3339))
                     }
                 }
                 s.Unlock()
