@@ -46,7 +46,7 @@
         }
 
         function connect() {
-            const ws = new WebSocket('ws://localhost:42069');
+            const ws = new WebSocket('ws://localhost:42069/ws');
 
             ws.onopen = () => {
                 status.textContent = '🦍 CONNECTED - STRONK TOGETHER! 🦍';
