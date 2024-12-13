@@ -106,7 +106,7 @@ func main() {
 
     // Serve static files from /src directory
     fs := http.FileServer(http.Dir("./src"))
-    http.Handle("/", fs)
+    http.Handle("/", http.StripPrefix("/", fs))
 
     // Handle WebSocket connections
     http.HandleFunc("/ws", server.handleWS)
