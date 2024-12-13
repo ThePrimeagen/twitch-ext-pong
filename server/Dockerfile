@@ -1,5 +1,5 @@
 # Start from golang base image
-FROM golang:1.18-alpine
+FROM golang:1.21-alpine
 
 # Add git for go mod download
 RUN apk add --no-cache git
