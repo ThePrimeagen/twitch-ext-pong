@@ -27,18 +27,22 @@ let gameState = {
 // WebSocket event handlers
 ws.onopen = () => {
     console.log('🦍 CONNECTED TO STRONK SERVER 🦍');
+    console.log('🦍 READY FOR PADDLE MOVEMENT 🦍');
 };
 
 ws.onmessage = (event) => {
     const message = JSON.parse(event.data);
+    console.log('🦍 RECEIVED MESSAGE:', message.type, message.payload);
 
     switch (message.type) {
         case 'initial_state':
+            console.log('🦍 GOT INITIAL STATE:', message.payload);
             gameState = message.payload;
             drawGame();
             break;
         case 'paddle_update':
             const pos = message.payload;
+            console.log('🦍 PADDLE UPDATE:', pos);
             if (pos.side === 'left') {
                 gameState.leftPaddle = pos.y;
             } else {
