@@ -11,17 +11,16 @@ WORKDIR /app
 COPY server/ ./server/
 COPY src/ ./src/
 
-# Set up Go workspace
+# Set up Go workspace and build
 WORKDIR /app/server
-
-# Download all dependencies
 RUN go mod download
-
-# Build the application
 RUN go build -o main .
+
+# Set final working directory for execution
+WORKDIR /app
 
 # Expose port 42069 🦍
 EXPOSE 42069
 
 # Command to run the executable
-CMD ["./main"]
+CMD ["./server/main"]
