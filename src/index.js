@@ -1,1 +1,4 @@
-console.log("Hey prime :D what's up it's me DerLuukee xD")
+/** @type {HTMLCanvasElement} */
+const canvas = document.getElementById("gameCanvas")
+
+console.log("hello, 🦍")
