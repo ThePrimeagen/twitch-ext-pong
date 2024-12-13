@@ -104,9 +104,9 @@ func main() {
         "version", "1.0.0",
         "log_level", "debug")
 
-    // Serve static files from /src directory
-    fs := http.FileServer(http.Dir("./src"))
-    http.Handle("/", http.StripPrefix("/", fs))
+    // Serve static files from /app/src directory
+    fs := http.FileServer(http.Dir("/app/src"))
+    http.Handle("/", fs)
 
     // Handle WebSocket connections
     http.HandleFunc("/ws", server.handleWS)
