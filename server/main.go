@@ -22,8 +22,8 @@ const (
 
 // Message structure for WebSocket communication
 type Message struct {
-    Type    MessageType  `json:"type"`
-    Payload interface{} `json:"payload"`
+    Type    MessageType     `json:"type"`
+    Payload json.RawMessage `json:"payload"`
 }
 
 // TeamAssignment represents team assignment for a player
@@ -35,6 +35,14 @@ type TeamAssignment struct {
 type PaddlePosition struct {
     Side string  `json:"side"`    // "left" or "right"
     Y    float64 `json:"y"`       // Y coordinate
+}
+
+// Validate ensures paddle position is within bounds
+func (p *PaddlePosition) Validate() error {
+    if p.Y < 0 || p.Y > 600 { // Canvas height validation
+        return fmt.Errorf("invalid paddle Y position: %f", p.Y)
+    }
+    return nil
 }
 
 // GameState represents the current state of the game
@@ -73,15 +81,32 @@ func NewServer() *Server {
 // Broadcast sends a message to all connected clients
 func (s *Server) broadcast(msg Message) {
     s.RLock()
+    defer s.RUnlock()
+
+    deadConns := make([]*websocket.Conn, 0)
     for conn := range s.connections {
         if err := conn.WriteJSON(msg); err != nil {
-            slog.Error("Failed to send message",
+            slog.Error("Failed to broadcast message",
                 "error", err,
                 "addr", conn.RemoteAddr(),
                 "timestamp", time.Now().Format(time.RFC3339))
+            deadConns = append(deadConns, conn)
         }
     }
-    s.RUnlock()
+
+    // Clean up dead connections outside the read lock
+    if len(deadConns) > 0 {
+        s.Lock()
+        for _, conn := range deadConns {
+            delete(s.connections, conn)
+            s.connectionCount--
+            slog.Info("🦍 REMOVED DEAD CONNECTION 🦍",
+                "addr", conn.RemoteAddr(),
+                "remaining", s.connectionCount,
+                "timestamp", time.Now().Format(time.RFC3339))
+        }
+        s.Unlock()
+    }
 }
 
 func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
@@ -153,22 +178,36 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 
         // Handle paddle updates
         if msg.Type == TypePaddleUpdate {
-            if pos, ok := msg.Payload.(map[string]interface{}); ok {
-                s.Lock()
-                if side, ok := pos["side"].(string); ok {
-                    if y, ok := pos["y"].(float64); ok {
-                        // All players control left paddle
-                        s.gameState.LeftPaddle = y
-                        // Broadcast the update to all clients
-                        s.broadcast(msg)
-                        slog.Info("🦍 PADDLE MOVED 🦍",
-                            "side", side,
-                            "y", y,
-                            "timestamp", time.Now().Format(time.RFC3339))
-                    }
-                }
-                s.Unlock()
+            var paddlePos PaddlePosition
+            if err := json.Unmarshal(msg.Payload, &paddlePos); err != nil {
+                slog.Error("Failed to parse paddle position",
+                    "error", err,
+                    "addr", conn.RemoteAddr(),
+                    "timestamp", time.Now().Format(time.RFC3339))
+                continue
             }
+
+            // Validate paddle position
+            if err := paddlePos.Validate(); err != nil {
+                slog.Error("Invalid paddle position",
+                    "error", err,
+                    "addr", conn.RemoteAddr(),
+                    "timestamp", time.Now().Format(time.RFC3339))
+                continue
+            }
+
+            s.Lock()
+            // All players control left paddle
+            s.gameState.LeftPaddle = paddlePos.Y
+            s.Unlock()
+
+            // Broadcast outside of lock
+            s.broadcast(msg)
+
+            slog.Info("🦍 PADDLE MOVED 🦍",
+                "side", paddlePos.Side,
+                "y", paddlePos.Y,
+                "timestamp", time.Now().Format(time.RFC3339))
         }
     }
 }
