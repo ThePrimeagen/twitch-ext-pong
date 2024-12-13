@@ -16,6 +16,7 @@ const PADDLE_COLOR = '#fff';
 const PADDLE_SPEED = 10;
 const MIN_PADDLE_Y = BORDER_WIDTH;
 let maxPaddleY = canvas.height - BORDER_WIDTH - PADDLE_HEIGHT;
+const KEYS = { ArrowUp: false, ArrowDown: false }; // Track key states
 
 // WebSocket connection
 const ws = new WebSocket('ws://localhost:42069/ws');
@@ -102,6 +103,9 @@ function drawGame() {
 }
 
 // Handle paddle movement
+let lastUpdate = 0;
+const UPDATE_INTERVAL = 1000 / 60; // 60 updates per second
+
 function movePaddle(direction) {
     const currentY = gameState.leftPaddle;  // All players control left paddle
     let newY = currentY;
@@ -112,8 +116,9 @@ function movePaddle(direction) {
         newY = Math.min(maxPaddleY, currentY + PADDLE_SPEED);
     }
 
-    if (newY !== currentY) {
-        // Send paddle position to server
+    const now = performance.now();
+    if (newY !== currentY && now - lastUpdate >= UPDATE_INTERVAL) {
+        lastUpdate = now;
         const updateMsg = {
             type: 'paddle_update',
             payload: {
@@ -127,15 +132,30 @@ function movePaddle(direction) {
 
 // Handle keyboard events
 document.addEventListener('keydown', (event) => {
-    switch (event.key) {
-        case 'ArrowUp':
-            movePaddle('up');
-            break;
-        case 'ArrowDown':
-            movePaddle('down');
-            break;
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        KEYS[event.key] = true;
     }
 });
+
+document.addEventListener('keyup', (event) => {
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        KEYS[event.key] = false;
+    }
+});
+
+// Game loop for continuous movement
+function gameLoop() {
+    if (KEYS.ArrowUp) {
+        movePaddle('up');
+    }
+    if (KEYS.ArrowDown) {
+        movePaddle('down');
+    }
+    requestAnimationFrame(gameLoop);
+}
+
+// Start game loop
+requestAnimationFrame(gameLoop);
 
 // Resize canvas to fit window
 function resizeCanvas() {
