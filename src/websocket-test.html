@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🦍 STRONK WEBSOCKET TEST 🦍</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #fff;
+        }
+        #status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .connected {
+            background: #4CAF50;
+        }
+        .disconnected {
+            background: #f44336;
+        }
+        #messages {
+            border: 1px solid #333;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🦍 STRONK WEBSOCKET TEST 🦍</h1>
+    <div id="status" class="disconnected">Disconnected</div>
+    <div id="messages"></div>
+
+    <script>
+        const status = document.getElementById('status');
+        const messages = document.getElementById('messages');
+
+        function addMessage(msg) {
+            const div = document.createElement('div');
+            div.textContent = `${new Date().toISOString()}: ${msg}`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function connect() {
+            const ws = new WebSocket('ws://localhost:42069');
+
+            ws.onopen = () => {
+                status.textContent = '🦍 CONNECTED - STRONK TOGETHER! 🦍';
+                status.className = 'connected';
+                addMessage('Connected to WebSocket server');
+            };
+
+            ws.onclose = () => {
+                status.textContent = '💔 DISCONNECTED - TRYING AGAIN IN 3s 💔';
+                status.className = 'disconnected';
+                addMessage('Disconnected from WebSocket server');
+                setTimeout(connect, 3000);
+            };
+
+            ws.onerror = (error) => {
+                addMessage('WebSocket error');
+                console.error('WebSocket error:', error);
+            };
+
+            ws.onmessage = (event) => {
+                addMessage(`Received: ${event.data}`);
+            };
+        }
+
+        // Start connection
+        connect();
+    </script>
+</body>
+</html>
