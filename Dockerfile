@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Copy server files
 COPY server/ ./server/
-COPY src/ ./src/
+COPY ../src/ ./src/
 
 # Set up Go workspace
 WORKDIR /app/server
