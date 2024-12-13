@@ -3,9 +3,20 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 // Game dimensions and settings
-const ASPECT_RATIO = 16/9; // Changed to 16:9 for maximum STRONK
+const ASPECT_RATIO = 16/9;
 const BORDER_WIDTH = 10;
-const MIN_PADDING = 20; // Reduced padding to make canvas MIGHTY BIG
+const MIN_PADDING = 20;
+
+// Paddle settings
+const PADDLE_WIDTH = 20;
+const PADDLE_HEIGHT = 100;
+const PADDLE_COLOR = '#fff';
+
+// Draw paddle at specific coordinates
+function drawPaddle(x, y) {
+    ctx.fillStyle = PADDLE_COLOR;
+    ctx.fillRect(x, y, PADDLE_WIDTH, PADDLE_HEIGHT);
+}
 
 // Resize canvas to fit window
 function resizeCanvas() {
@@ -24,8 +35,9 @@ function resizeCanvas() {
     canvas.width = width;
     canvas.height = height;
 
-    // Redraw game border
+    // Draw game elements
     drawGameBorder();
+    drawPaddles();
 }
 
 // Draw game border
@@ -37,6 +49,21 @@ function drawGameBorder() {
         BORDER_WIDTH / 2,
         canvas.width - BORDER_WIDTH,
         canvas.height - BORDER_WIDTH
+    );
+}
+
+// Draw both paddles at initial positions
+function drawPaddles() {
+    // Left paddle
+    drawPaddle(
+        BORDER_WIDTH * 2,
+        (canvas.height - PADDLE_HEIGHT) / 2
+    );
+
+    // Right paddle
+    drawPaddle(
+        canvas.width - BORDER_WIDTH * 2 - PADDLE_WIDTH,
+        (canvas.height - PADDLE_HEIGHT) / 2
     );
 }
 
