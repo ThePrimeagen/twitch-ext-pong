@@ -9,13 +9,20 @@ WORKDIR /app
 
 # Copy server files
 COPY server/ ./server/
-COPY src/ ./src/
 
-# Build the application
-RUN cd server && go mod download && go build -o main && cd ..
+# Set up Go workspace and build
+WORKDIR /app/server
+RUN go mod download
+RUN go build -o /app/main .
+
+# Set final working directory for execution
+WORKDIR /app
 
 # Expose port 42069 🦍
 EXPOSE 42069
 
+# MAKE CACHE NICE
+COPY src/ ./src/
+
 # Command to run the executable
-CMD ["./server/main"]
+CMD ["./main"]
