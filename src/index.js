@@ -3,9 +3,9 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 // Game dimensions and settings
-const ASPECT_RATIO = 4/3;
+const ASPECT_RATIO = 16/9; // Changed to 16:9 for maximum STRONK
 const BORDER_WIDTH = 10;
-const MIN_PADDING = 50;
+const MIN_PADDING = 20; // Reduced padding to make canvas MIGHTY BIG
 
 // Resize canvas to fit window
 function resizeCanvas() {
