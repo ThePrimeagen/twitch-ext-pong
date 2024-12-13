@@ -105,7 +105,7 @@ func main() {
         "log_level", "debug")
 
     // Serve static files from /src directory
-    fs := http.FileServer(http.Dir("./src"))
+    fs := http.FileServer(http.Dir("/app/src"))
     http.Handle("/", fs)
 
     // Handle WebSocket connections
